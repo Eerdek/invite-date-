@@ -342,6 +342,10 @@ body {
 .btn-no {
   transform-origin: top left;
   transition: left 0.16s ease, top 0.16s ease, transform 0.2s ease;
+  /* Once it flees it lives on <body>; lift it above .main (z-index 1) and the
+     heart so it never hides behind the canvas. */
+  position: relative;
+  z-index: 60;
 }
 
 /* ---------------------------------------------------------------------------
