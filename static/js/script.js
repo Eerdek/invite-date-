@@ -36,7 +36,8 @@ if (heartCanvas) {
   let scale = 1;
 
   function resize() {
-    size = Math.min(window.innerWidth * 0.82, 420);
+    // Respect height too, so the heart never dominates short / landscape screens.
+    size = Math.min(window.innerWidth * 0.82, window.innerHeight * 0.5, 440);
     const dpr = window.devicePixelRatio || 1;
     heartCanvas.width = size * dpr;
     heartCanvas.height = size * dpr;
@@ -331,21 +332,33 @@ if (proposalForm) {
 
   // Grow "Yes", shrink + teleport "No", and advance the plea (clamped).
   function dodge() {
-    yesScale = Math.min(2.4, yesScale + 0.12);
+    // Cap the "Yes" growth tighter on small screens so a runaway 2.4× button
+    // can't spill past the viewport (it was a source of stray scrollbars).
+    const yesCap = window.innerWidth < 480 ? 1.7 : 2.4;
+    yesScale = Math.min(yesCap, yesScale + 0.12);
     yesBtn.style.transform = `scale(${yesScale})`;
 
-    noScale = Math.max(0.35, noScale - 0.08);
+    noScale = Math.max(0.5, noScale - 0.07);
 
     // Clamp to the last plea so the text never repeats from the top.
     heading.innerText = pleas[Math.min(pleaIndex, pleas.length - 1)];
     pleaIndex++;
 
+    // Pin "No" to the viewport, then drop it somewhere fully inside. We measure
+    // its already-scaled box (transform-origin is top-left via CSS) and keep a
+    // margin, so it can never poke past an edge and create a scrollbar — even
+    // on mobile, where visualViewport gives the true visible size.
     noBtn.style.position = "fixed";
     noBtn.style.transform = `scale(${noScale})`;
-    const maxX = Math.max(0, window.innerWidth - noBtn.offsetWidth);
-    const maxY = Math.max(0, window.innerHeight - noBtn.offsetHeight);
-    noBtn.style.left = `${Math.random() * maxX}px`;
-    noBtn.style.top = `${Math.random() * maxY}px`;
+
+    const vw = (window.visualViewport && window.visualViewport.width) || window.innerWidth;
+    const vh = (window.visualViewport && window.visualViewport.height) || window.innerHeight;
+    const rect = noBtn.getBoundingClientRect();
+    const margin = 10;
+    const maxX = Math.max(margin, vw - rect.width - margin);
+    const maxY = Math.max(margin, vh - rect.height - margin);
+    noBtn.style.left = `${margin + Math.random() * (maxX - margin)}px`;
+    noBtn.style.top = `${margin + Math.random() * (maxY - margin)}px`;
 
     heartSkip(); // the heart skips a beat when "No" runs away
   }

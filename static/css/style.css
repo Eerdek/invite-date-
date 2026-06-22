@@ -124,7 +124,15 @@ body {
   justify-content: center;
   text-align: center;
   min-height: 100vh;
+  min-height: 100dvh; /* dynamic vh: no jump when the mobile URL bar shows/hides */
   padding: 2rem;
+}
+
+/* The proposal is a single-screen experience: lock scrolling so the dodging
+   "No" button and the growing "Yes" button can never spawn a stray scrollbar. */
+.page-proposal {
+  overflow: hidden;
+  height: 100dvh;
 }
 
 .main img {
@@ -140,10 +148,14 @@ body {
 .title {
   font-family: "Playfair Display", serif;
   text-align: center;
-  font-size: 6.4rem;
+  /* Fluidly scales from phones to desktop — long pleas never overflow */
+  font-size: clamp(3rem, 7vw, 6.4rem);
   font-weight: 700;
   letter-spacing: 0.05rem;
   color: #fff5f8;
+  max-width: 92%;
+  overflow-wrap: break-word;
+  text-wrap: balance;
   animation: title-glow 3.5s ease-in-out infinite;
 }
 
@@ -302,6 +314,7 @@ body {
   padding: 1.1rem 3.4rem;
   text-align: center;
   display: inline-block;
+  min-height: 4.4rem; /* comfortable touch target on phones */
   font-size: 1.6rem;
   font-weight: 700;
   cursor: pointer;
@@ -309,6 +322,7 @@ body {
   border-radius: 1.4rem;
   box-shadow: 0 0.6rem 1.8rem rgba(255, 45, 111, 0.45);
   transition: transform 0.3s ease, box-shadow 0.3s ease, filter 0.3s ease;
+  touch-action: manipulation; /* kill the 300ms tap delay / double-tap zoom */
 }
 
 .btn:hover {
@@ -320,6 +334,14 @@ body {
 /* The "Yes" button grows via inline transform from JS; just keep it smooth. */
 .btn-yes {
   will-change: transform;
+}
+
+/* When "No" flees it becomes position:fixed with a JS-set scale. A top-left
+   transform origin makes its rendered box line up with its left/top, so the
+   dodge clamp can keep it fully on-screen. The transition makes it glide away. */
+.btn-no {
+  transform-origin: top left;
+  transition: left 0.16s ease, top 0.16s ease, transform 0.2s ease;
 }
 
 /* ---------------------------------------------------------------------------
@@ -891,30 +913,82 @@ body {
 /* ---------------------------------------------------------------------------
    Responsive
    --------------------------------------------------------------------------- */
+/* Tablet and down: tighten the button row a touch */
+@media (max-width: 1024px) {
+  .proposalForm {
+    gap: clamp(1rem, 3vw, 1.5rem);
+  }
+}
+
+/* Phones */
 @media (max-width: 768px) {
-  .title {
-    font-size: 3.8rem;
-  }
-
   .btn {
-    font-size: 1.2rem;
-    padding: 1rem 2rem;
-    border-radius: 1rem;
+    padding: 1.1rem 2.4rem;
+    border-radius: 1.1rem;
   }
 
+  /* Hover-grow is pointless on touch and feels jumpy — turn it off. */
   .btn:hover {
-    transform: scale(1);
+    transform: none;
+    filter: none;
   }
 
-  .envelope {
-    transform: scale(0.8);
+  .name-title {
+    font-size: 2.8rem;
+  }
+
+  .lf-greeting {
+    font-size: 2rem;
+  }
+
+  .lf-row {
+    font-size: 1.6rem;
+  }
+
+  .lf-field,
+  .lf-area,
+  .lf-written,
+  .lf-written-block {
+    font-size: 2.2rem;
+  }
+}
+
+/* Small phones: shrink the letter ruling + decorations so nothing crowds */
+@media (max-width: 480px) {
+  .letter-form {
+    --line: 3.2rem;
+    padding: 2rem 1.8rem 2rem 3.4rem;
+  }
+
+  .letter-form::before {
+    left: 2rem;
+  }
+
+  .postage { width: 4.4rem; height: 5.2rem; }
+  .postmark { width: 5.6rem; height: 5.6rem; top: 4.6rem; right: 3rem; font-size: 0.8rem; }
+  .par-avion { font-size: 1.1rem; bottom: 4.4rem; left: 3.4rem; }
+
+  .journey-status {
+    font-size: 1.9rem;
+  }
+}
+
+/* Short / landscape screens: keep the hero within the fold */
+@media (max-height: 560px) {
+  .title {
+    font-size: clamp(2.4rem, 8vw, 4rem);
+  }
+
+  .heart-canvas {
+    margin: 0.4rem auto;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .ekg-track,
   .heart,
-  .btn-plan {
+  .btn-plan,
+  .title {
     animation: none;
   }
 }

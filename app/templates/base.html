@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="{% static 'css/style.css' %}" />
     <script defer src="{% static 'js/script.js' %}"></script>
   </head>
-  <body>
+  <body class="{% block body_class %}{% endblock %}">
     <!-- Heartbeat (EKG) line scrolling right-to-left behind everything -->
     <div class="ekg-bg" aria-hidden="true">
       <div class="ekg-track">
