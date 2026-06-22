@@ -359,6 +359,10 @@ if (proposalForm) {
     heading.innerText = pleas[Math.min(pleaIndex, pleas.length - 1)];
     pleaIndex++;
 
+    // Re-parent to <body> the first time so the button's fixed positioning is
+    // always relative to the viewport — no ancestor transform (e.g. the form's
+    // intro animation) can capture it and throw the coordinates off.
+    if (noBtn.parentElement !== document.body) document.body.appendChild(noBtn);
     noBtn.style.position = "fixed";
     noBtn.style.transform = `scale(${noScale})`;
     placeNo(Math.random() * window.innerWidth, Math.random() * window.innerHeight);
