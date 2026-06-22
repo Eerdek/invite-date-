@@ -40,6 +40,24 @@ ALLOWED_HOSTS = ast.literal_eval(
     os.environ.get("ALLOWED_HOSTS", "['127.0.0.1', 'localhost']")
 )
 
+# Vercel terminates TLS at its edge and forwards the request to the lambda over
+# plain HTTP, marking the original scheme in this header. Without it Django sees
+# every request as insecure, which breaks CSRF on the POST forms below.
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+# The proposal forms POST over HTTPS, so the deployment origin must be trusted
+# or CSRF returns 403. Defaults to any *.vercel.app domain; override via env for
+# a custom domain, e.g. "['https://*.vercel.app','https://mydomain.com']".
+CSRF_TRUSTED_ORIGINS = ast.literal_eval(
+    os.environ.get("CSRF_TRUSTED_ORIGINS", "['https://*.vercel.app']")
+)
+
+# In production (DEBUG off) the app is only ever served over HTTPS on Vercel,
+# so the session/CSRF cookies can be marked secure-only.
+if not DEBUG:
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+
 
 # Application definition
 
@@ -149,10 +167,11 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = "static/"
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
-
-
-STATIC_ROOT = BASE_DIR / "staticfiles"
+# Non-manifest storage: collectstatic runs in a separate Vercel build container,
+# so the lambda never has staticfiles.json. The Manifest variant would crash
+# every {% static %} lookup at runtime. This keeps whitenoise compression
+# without the manifest dependency.
+STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
 
 STATICFILES_DIRS = (os.path.join(BASE_DIR, "static"),)
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles", "static")
