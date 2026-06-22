@@ -330,6 +330,21 @@ if (proposalForm) {
   let noScale = 1;
   let pleaIndex = 0;
 
+  // Place "No" at (x, y), but force it fully inside the visible viewport. Uses
+  // the layout viewport (clientWidth/Height) and the EXACT scaled size
+  // (offsetWidth is unscaled, so × noScale). transform-origin is top-left, so
+  // the rendered box is [left, left + scaledW] — clamping with a margin means it
+  // can never poke past an edge, independent of transition timing or zoom.
+  function placeNo(x, y) {
+    const vw = document.documentElement.clientWidth;
+    const vh = document.documentElement.clientHeight;
+    const w = noBtn.offsetWidth * noScale;
+    const h = noBtn.offsetHeight * noScale;
+    const m = 12;
+    noBtn.style.left = `${Math.min(Math.max(m, x), Math.max(m, vw - w - m))}px`;
+    noBtn.style.top = `${Math.min(Math.max(m, y), Math.max(m, vh - h - m))}px`;
+  }
+
   // Grow "Yes", shrink + teleport "No", and advance the plea (clamped).
   function dodge() {
     // Cap the "Yes" growth tighter on small screens so a runaway 2.4× button
@@ -344,24 +359,19 @@ if (proposalForm) {
     heading.innerText = pleas[Math.min(pleaIndex, pleas.length - 1)];
     pleaIndex++;
 
-    // Pin "No" to the viewport, then drop it somewhere fully inside. We measure
-    // its already-scaled box (transform-origin is top-left via CSS) and keep a
-    // margin, so it can never poke past an edge and create a scrollbar — even
-    // on mobile, where visualViewport gives the true visible size.
     noBtn.style.position = "fixed";
     noBtn.style.transform = `scale(${noScale})`;
-
-    const vw = (window.visualViewport && window.visualViewport.width) || window.innerWidth;
-    const vh = (window.visualViewport && window.visualViewport.height) || window.innerHeight;
-    const rect = noBtn.getBoundingClientRect();
-    const margin = 10;
-    const maxX = Math.max(margin, vw - rect.width - margin);
-    const maxY = Math.max(margin, vh - rect.height - margin);
-    noBtn.style.left = `${margin + Math.random() * (maxX - margin)}px`;
-    noBtn.style.top = `${margin + Math.random() * (maxY - margin)}px`;
+    placeNo(Math.random() * window.innerWidth, Math.random() * window.innerHeight);
 
     heartSkip(); // the heart skips a beat when "No" runs away
   }
+
+  // After a rotation / viewport change, pull a fled "No" back into view.
+  window.addEventListener("resize", () => {
+    if (noBtn.style.position === "fixed") {
+      placeNo(parseFloat(noBtn.style.left) || 0, parseFloat(noBtn.style.top) || 0);
+    }
+  });
 
   noBtn.addEventListener("mouseover", dodge);
   noBtn.addEventListener("click", dodge);
