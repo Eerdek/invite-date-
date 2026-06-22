@@ -1,41 +1,28 @@
 from django.shortcuts import render, redirect
-from .utils import *
+from django.urls import reverse
+from urllib.parse import urlencode
 
 
 def index(request):
+    # The "No" button is decorative (it dodges and can't be submitted), so any
+    # POST reaching here is a "Yes". Carry the name over to the yes page.
     if request.method == "POST":
-        name = request.POST.get("name")
-        response = request.POST.get("response")
-
-        user_identifier = generate_user_identifier()
-
-        request.session["user_identifier"] = user_identifier
-
-        proposal = create_proposal(name, response, user_identifier)
-
-        return redirect("yes_page") if response == "Yes" else redirect("no_page")
+        name = request.POST.get("name", "").strip()
+        query = urlencode({"name": name})
+        return redirect(f"{reverse('yes_page')}?{query}")
     return render(request, "index.html")
 
 
 def yes_page(request):
-    proposal = get_proposal_or_redirect(request)
+    # Name comes from the planning form (POST) or the redirect query (GET).
+    name = (request.POST.get("name") or request.GET.get("name") or "").strip()
 
-    context = {"name": proposal.name}
+    context = {"name": name}
 
     if request.method == "POST":
-        email = request.POST.get("email")
-
-        update_proposal_email(proposal, email)
+        # The sweetheart picked a date and an activity — show the confirmation.
+        context["date"] = request.POST.get("date", "").strip()
+        context["activity"] = request.POST.get("activity", "").strip()
+        context["planned"] = True
 
     return render(request, "yes_page.html", context)
-
-
-def no_page(request):
-    proposal = get_proposal_or_redirect(request)
-
-    context = {"name": proposal.name}
-    return render(request, "no_page.html", context)
-
-
-def error(request):
-    return redirect("index")

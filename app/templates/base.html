@@ -10,6 +10,43 @@
     <script defer src="{% static 'js/script.js' %}"></script>
   </head>
   <body>
+    <!-- Heartbeat (EKG) line scrolling right-to-left behind everything -->
+    <div class="ekg-bg" aria-hidden="true">
+      <div class="ekg-track">
+        <svg class="ekg-svg" viewBox="0 0 1200 200" preserveAspectRatio="none">
+          <path
+            class="ekg-path"
+            d="M0,100 L120,100 L140,100 L150,60 L160,140 L170,20 L180,170 L190,100 L300,100
+               L420,100 L440,100 L450,60 L460,140 L470,20 L480,170 L490,100 L600,100
+               L720,100 L740,100 L750,60 L760,140 L770,20 L780,170 L790,100 L900,100
+               L1020,100 L1040,100 L1050,60 L1060,140 L1070,20 L1080,170 L1090,100 L1200,100"
+          />
+        </svg>
+        <svg class="ekg-svg" viewBox="0 0 1200 200" preserveAspectRatio="none">
+          <path
+            class="ekg-path"
+            d="M0,100 L120,100 L140,100 L150,60 L160,140 L170,20 L180,170 L190,100 L300,100
+               L420,100 L440,100 L450,60 L460,140 L470,20 L480,170 L490,100 L600,100
+               L720,100 L740,100 L750,60 L760,140 L770,20 L780,170 L790,100 L900,100
+               L1020,100 L1040,100 L1050,60 L1060,140 L1070,20 L1080,170 L1090,100 L1200,100"
+          />
+        </svg>
+      </div>
+    </div>
+
+    <!-- Soft floating hearts -->
+    <div class="hearts" aria-hidden="true">
+      <span class="heart">❤</span>
+      <span class="heart">💕</span>
+      <span class="heart">💗</span>
+      <span class="heart">❤</span>
+      <span class="heart">💞</span>
+      <span class="heart">💓</span>
+    </div>
+
+    <!-- Subtle cinematic vignette over the whole page -->
+    <div class="page-vignette" aria-hidden="true"></div>
+
     {% block content %} {% endblock %}
   </body>
 </html>

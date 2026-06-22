@@ -35,7 +35,10 @@ DEBUG = (
 )  # Convert to boolean by comparing with the string "true"
 
 
-ALLOWED_HOSTS = ast.literal_eval(os.environ.get("ALLOWED_HOSTS"))
+# Read ALLOWED_HOSTS from env; fall back to safe localhost defaults if unset
+ALLOWED_HOSTS = ast.literal_eval(
+    os.environ.get("ALLOWED_HOSTS", "['127.0.0.1', 'localhost']")
+)
 
 
 # Application definition
@@ -93,19 +96,20 @@ WSGI_APPLICATION = "core.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.environ.get("DB_NAME"),
-        "USER": os.environ.get("DB_USER"),
-        "PASSWORD": os.environ.get("DB_PASSWORD"),
-        "HOST": os.environ.get("DB_HOST"),
-        "PORT": os.environ.get("DB_PORT"),
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
     }
 }
 
+# PostgreSQL config (swap back in for production / when Postgres is available)
 # DATABASES = {
 #     "default": {
-#         "ENGINE": "django.db.backends.sqlite3",
-#         "NAME": BASE_DIR / "db.sqlite3",
+#         "ENGINE": "django.db.backends.postgresql",
+#         "NAME": os.environ.get("DB_NAME"),
+#         "USER": os.environ.get("DB_USER"),
+#         "PASSWORD": os.environ.get("DB_PASSWORD"),
+#         "HOST": os.environ.get("DB_HOST"),
+#         "PORT": os.environ.get("DB_PORT"),
 #     }
 # }
 

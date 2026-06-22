@@ -1,14 +1,11 @@
-<form action="" method="POST" class="proposalForm" id="proposalForm">
+<form action="{% url 'index' %}" method="POST" class="proposalForm" id="proposalForm">
   {% csrf_token %}
 
-  <input
-    type="hidden"
-    name="name"
-    class="form-control"
-    id="username"
-    value="{{ name }}"
-  />
+  <input type="hidden" name="name" id="username" value="{{ name }}" />
 
-  <button type="submit" name="response" value="Yes" class="btn">❤️ Yes</button>
-  <button type="submit" name="response" value="No" class="btn">💔 No</button>
+  <!-- Only "Yes" submits. "No" is a plain button that runs away (see script.js). -->
+  <button type="submit" name="response" value="Yes" class="btn btn-yes" id="yesBtn">
+    ❤️ Yes
+  </button>
+  <button type="button" class="btn btn-no" id="noBtn">💔 No</button>
 </form>

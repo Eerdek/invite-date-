@@ -1,11 +1,106 @@
 {% extends "base.html" %} {% block content %} {% load static %}
-<main class="main">
-  <h1 id="proposalHeading" class="title">
-    {{ name }}, that's wonderful! Let's plan something special.
+<main class="main{% if not planned %} plan-page{% endif %}">
+  {% if planned %}
+  <h1 id="proposalHeading" class="title lf-title pop-in">
+    It's a date{% if name %}, {{ name }}{% endif %}! 🥰
   </h1>
 
-  {% include "includes/forms/email_submission.html" %}
+  <!-- The very same notebook letter, now filled in, tucked into an envelope -->
+  <div class="sealed-letter">
+    <article class="letter-form letter-final">
+      <div class="lf-row lf-greeting">
+        Dear {% if name %}{{ name }}{% else %}you{% endif %},
+      </div>
+      <div class="lf-row">We're making it official — we'll meet on</div>
+      <div class="lf-row"><span class="lf-written">{{ date }}</span></div>
+      <div class="lf-row">and spend our time together doing</div>
+      <div class="lf-written-block">{{ activity }}</div>
+      <div class="lf-row"></div>
+      <div class="lf-row lf-sign">Yours, always 💌</div>
+      <!-- trailing blank lines so the envelope pocket only covers empty paper -->
+      <div class="lf-row"></div>
+      <div class="lf-row"></div>
+      <div class="lf-row"></div>
 
-  <img src="{% static 'img/yes_response.gif' %}" alt="I love you" />
+      <!-- Airmail decorations live INSIDE the letter so they fold with it -->
+      <div class="par-avion">PAR AVION</div>
+      <div class="postmark">SEALED<br />· WITH LOVE ·</div>
+      <div class="postage">
+        <span class="postage-art">❤</span>
+        <span class="postage-label">LOVE</span>
+      </div>
+      <div class="wax-seal">❤</div>
+    </article>
+  </div>
+
+  <div class="confirm-extras">
+    <p class="screenshot-note">
+      📸 There's no database here — this little letter only lives on your screen.
+      <br />
+      Screenshot it and send it to me to make it official! 💕
+    </p>
+    <button id="sentBtn" class="btn sent-btn">I saved it 📸 — send it off ✈️</button>
+  </div>
+
+  <!-- The cinematic send-off: everything painted on canvas, no emoji -->
+  <div id="journey" class="journey" aria-hidden="true">
+    <canvas id="journeyCanvas" class="journey-canvas"></canvas>
+
+    <!-- The dove (SVG, flapping wings) carrying an airmail letter -->
+    <div class="flyer">
+      <svg class="dove" viewBox="0 0 140 110" xmlns="http://www.w3.org/2000/svg">
+        <polygon class="dove-tail" points="40,62 8,52 18,72" />
+        <ellipse class="dove-body" cx="62" cy="64" rx="34" ry="14"
+          transform="rotate(-8 62 64)" />
+        <circle class="dove-head" cx="96" cy="52" r="11" />
+        <polygon class="dove-beak" points="106,49 119,53 106,57" />
+        <circle class="dove-eye" cx="99" cy="49" r="1.7" />
+        <path class="dove-wing" d="M60,58 Q64,26 96,40 Q74,60 60,58 Z" />
+      </svg>
+      <div class="airmail"><span class="airmail-stamp">❤</span></div>
+    </div>
+
+    <div class="vignette"></div>
+    <div class="bars top"></div>
+    <div class="bars bottom"></div>
+
+    <p id="journeyStatus" class="journey-status cap">Folding the letter…</p>
+    <button id="openBtn" class="btn open-btn">Open it 💌</button>
+  </div>
+  {% else %}
+  <h1 id="proposalHeading" class="title lf-title pop-in">
+    {% if name %}{{ name }}, that's{% else %}That's{% endif %} wonderful! 💞
+  </h1>
+
+  <!-- The plan form, written line by line like a real letter -->
+  <form action="{% url 'yes_page' %}" method="POST" class="letter-form pop-in" id="planForm">
+    {% csrf_token %}
+    <input type="hidden" name="name" value="{{ name }}" />
+
+    <div class="lf-row lf-greeting">
+      Dear {% if name %}{{ name }}{% else %}you{% endif %},
+    </div>
+    <div class="lf-row">Let's make it official — let's meet on</div>
+    <div class="lf-row">
+      <input type="date" name="date" id="dateInput" class="lf-field" required />
+    </div>
+    <div class="lf-row">and spend our time together doing</div>
+    <textarea
+      name="activity"
+      id="activityInput"
+      class="lf-area"
+      rows="1"
+      placeholder="dinner, a movie, a walk..."
+      required
+    ></textarea>
+    <div class="lf-row"></div>
+    <div class="lf-row lf-sign">Yours, always 💌</div>
+    <div class="lf-row"></div>
+    <div class="lf-row"></div>
+    <div class="lf-row"></div>
+
+    <button type="submit" class="btn btn-plan lf-seal">Seal our plan 💌</button>
+  </form>
+  {% endif %}
 </main>
 {% endblock %}

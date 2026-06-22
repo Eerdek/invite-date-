@@ -1,4 +1,5 @@
-@import url("https://fonts.googleapis.com/css2?family=Nunito:ital,wght@1,700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Nunito:ital,wght@0,400;0,700;1,700&family=Playfair+Display:ital,wght@0,600;0,700;1,700&display=swap");
+
 * {
   padding: 0;
   margin: 0;
@@ -13,99 +14,907 @@ body {
   font-family: "Nunito", sans-serif;
   line-height: 1;
   font-weight: 400;
-  color: #fff;
-  background-color: #f8c8dc;
+  color: #ffd9e6;
+  /* Dark romantic noir with a warm rose halo behind the centre */
+  background:
+    radial-gradient(circle at 50% 33%, rgba(255, 90, 130, 0.2), transparent 45%),
+    radial-gradient(ellipse at 50% 42%, #3a0f24 0%, #1a0712 55%, #07030a 100%);
+  background-attachment: fixed;
+  min-height: 100vh;
+  overflow-x: hidden;
 }
 
+/* ---------------------------------------------------------------------------
+   Background: scrolling heartbeat (EKG) line — drawn behind all content
+   --------------------------------------------------------------------------- */
+.ekg-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+.ekg-track {
+  display: flex;
+  width: 200%;
+  height: 100%;
+  /* Negative translate = waveform travels from right to left */
+  animation: ekg-scroll 10s linear infinite;
+}
+
+.ekg-svg {
+  width: 50%;
+  height: 100%;
+  flex: 0 0 50%;
+}
+
+.ekg-path {
+  fill: none;
+  stroke: #ff2d6f;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 8px rgba(255, 45, 111, 1));
+}
+
+@keyframes ekg-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Background: soft floating hearts
+   --------------------------------------------------------------------------- */
+.hearts {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.heart {
+  position: absolute;
+  bottom: -5rem;
+  font-size: 2.4rem;
+  opacity: 0;
+  filter: drop-shadow(0 0 0.6rem rgba(255, 80, 120, 0.6));
+  animation: float-up 9s linear infinite;
+}
+
+.heart:nth-child(1) { left: 10%; animation-delay: 0s; }
+.heart:nth-child(2) { left: 28%; animation-delay: 2.5s; font-size: 3.2rem; }
+.heart:nth-child(3) { left: 45%; animation-delay: 1.2s; }
+.heart:nth-child(4) { left: 63%; animation-delay: 4s; font-size: 2rem; }
+.heart:nth-child(5) { left: 78%; animation-delay: 3s; font-size: 3rem; }
+.heart:nth-child(6) { left: 90%; animation-delay: 5.5s; }
+
+@keyframes float-up {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.6;
+  }
+  90% {
+    opacity: 0.35;
+  }
+  100% {
+    transform: translateY(-110vh) rotate(40deg);
+    opacity: 0;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Layout
+   --------------------------------------------------------------------------- */
 .main {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
-  height: 100vh;
+  min-height: 100vh;
+  padding: 2rem;
+}
+
+.main img {
+  max-width: 90%;
+}
+
+.heart-canvas {
+  display: block;
+  margin: 1rem auto;
+  filter: drop-shadow(0 0 2.6rem rgba(255, 70, 40, 0.6));
 }
 
 .title {
+  font-family: "Playfair Display", serif;
   text-align: center;
-  font-size: 7rem;
+  font-size: 6.4rem;
   font-weight: 700;
+  letter-spacing: 0.05rem;
+  color: #fff5f8;
+  animation: title-glow 3.5s ease-in-out infinite;
+}
+
+@keyframes title-glow {
+  0%, 100% {
+    text-shadow: 0 0 1.2rem rgba(255, 60, 110, 0.45);
+  }
+  50% {
+    text-shadow: 0 0 2rem rgba(255, 70, 120, 0.85),
+      0 0 4rem rgba(255, 130, 160, 0.5);
+  }
+}
+
+.pop-in {
+  animation: pop-in 0.6s ease both;
+}
+
+@keyframes pop-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  70% {
+    transform: scale(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Custom name prompt modal
+   --------------------------------------------------------------------------- */
+.name-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background: rgba(7, 3, 10, 0.6);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  animation: fade-in 0.4s ease both;
+  transition: opacity 0.4s ease;
+}
+
+.name-modal.hidden {
+  /* Drop the fade-in animation so its "both" fill stops pinning opacity to 1,
+     letting the transition fade the modal out. */
+  animation: none;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.name-card {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 1.4rem;
+  width: min(36rem, 90vw);
+  padding: 3rem 2.6rem;
+  background: rgba(40, 14, 28, 0.72);
+  border: 0.1rem solid rgba(255, 120, 160, 0.35);
+  border-radius: 2.4rem;
+  box-shadow: 0 2rem 5rem rgba(0, 0, 0, 0.55),
+    0 0 3rem rgba(255, 45, 111, 0.25);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  text-align: center;
+}
+
+.name-title {
+  font-family: "Playfair Display", serif;
+  color: #fff5f8;
+  font-size: 3.2rem;
+  font-weight: 700;
+  text-shadow: 0 0 1.4rem rgba(255, 70, 120, 0.6);
+}
+
+.name-sub {
+  color: #ffb3c9;
+  font-size: 1.7rem;
+}
+
+.name-input {
+  width: 100%;
+  padding: 1.2rem 1.6rem;
+  background: rgba(255, 255, 255, 0.07);
+  border: 0.2rem solid rgba(255, 140, 170, 0.45);
+  border-radius: 1.4rem;
+  font-size: 1.8rem;
+  font-family: inherit;
+  color: #fff5f8;
+  text-align: center;
+  transition: box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.name-input::placeholder {
+  color: rgba(255, 200, 215, 0.5);
+}
+
+.name-input:focus {
+  outline: none;
+  border-color: #ff5c8a;
+  box-shadow: 0 0 0 0.3rem rgba(255, 92, 138, 0.35),
+    0 0 1.6rem rgba(255, 45, 111, 0.4);
+}
+
+.name-btn {
+  align-self: center;
+  margin-top: 0.6rem;
+}
+
+.shake {
+  animation: shake 0.4s ease;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-0.8rem); }
+  40%, 80% { transform: translateX(0.8rem); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ---------------------------------------------------------------------------
+   Buttons
+   --------------------------------------------------------------------------- */
+/* Subtle cinematic vignette across every page */
+.page-vignette {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 58%, rgba(0, 0, 0, 0.45) 100%);
 }
 
 .proposalForm {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  width: 25rem;
-}
-
-.emailForm {
-  width: 100%;
-  display: flex;
-  flex-direction: row;
   justify-content: center;
-  align-items: center;
-}
-
-.email {
-  width: 25%;
-  padding: 1rem 3.2rem;
-  border: 0.1rem solid #ffb6c1;
-  border-radius: 1.2rem;
-  font-size: 1.6rem;
-  margin: 0.4rem 0.2rem;
+  gap: 1.5rem;
+  margin-top: 2rem;
+  animation: fade-up 0.7s ease 0.2s both;
 }
 
 .btn {
-  background-color: #ffb6c1;
-  color: white;
-  padding: 1rem 3.2rem;
+  background: linear-gradient(135deg, #ff5c8a, #ff2d6f);
+  color: #fff;
+  padding: 1.1rem 3.4rem;
   text-align: center;
   display: inline-block;
   font-size: 1.6rem;
-  margin: 0.4rem 0.2rem;
+  font-weight: 700;
   cursor: pointer;
   border: none;
-  border-radius: 1.2rem;
-  transition: background-color 0.3s ease;
-  transition: transform 0.3s ease;
-}
-
-.btn-email {
-  margin-left: 0.7rem;
+  border-radius: 1.4rem;
+  box-shadow: 0 0.6rem 1.8rem rgba(255, 45, 111, 0.45);
+  transition: transform 0.3s ease, box-shadow 0.3s ease, filter 0.3s ease;
 }
 
 .btn:hover {
-  background-color: #ff69b4;
-  transform: scale(1.1);
+  transform: translateY(-0.2rem) scale(1.06);
+  filter: brightness(1.1);
+  box-shadow: 0 1rem 2.6rem rgba(255, 45, 111, 0.65);
 }
 
+/* The "Yes" button grows via inline transform from JS; just keep it smooth. */
+.btn-yes {
+  will-change: transform;
+}
+
+/* ---------------------------------------------------------------------------
+   Plan form (the glassy card)
+   --------------------------------------------------------------------------- */
+/* Plan page anchors content nearer the top so the title sits higher */
+.plan-page {
+  justify-content: flex-start;
+  padding-top: clamp(3rem, 8vh, 9rem);
+}
+
+.lf-title {
+  font-size: clamp(2.8rem, 5vw, 4.6rem);
+  margin-bottom: 2.2rem;
+}
+
+/* The plan form, styled like a real sheet of ruled notebook paper.
+   Each line is its own row with a bottom rule, and the text/inputs sit ON
+   that rule (align-items: flex-end) — so it reads like genuine handwriting
+   on the lines, not text floating between them. */
+.letter-form {
+  --line: 3.6rem;
+  position: relative;
+  width: min(42rem, 92vw);
+  padding: 2.4rem 3rem 2.4rem 4.6rem; /* extra left room for the margin line */
+  text-align: left;
+  color: #8a3b4d;
+  font-family: "Playfair Display", serif;
+  background: #fdf6ea; /* warm aged paper */
+  border-radius: 0.5rem;
+  box-shadow: 0 1.6rem 4rem rgba(0, 0, 0, 0.55),
+    0 0 2.6rem rgba(255, 45, 111, 0.25);
+  animation: fade-up 0.6s ease both;
+}
+
+/* red margin line down the left, like a real notebook page */
+.letter-form::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 3rem;
+  width: 0.15rem;
+  background: rgba(255, 80, 120, 0.5);
+}
+
+/* One ruled line of the letter */
+.lf-row {
+  display: flex;
+  align-items: flex-end;
+  min-height: var(--line);
+  padding-bottom: 0.4rem;
+  border-bottom: 0.1rem solid rgba(138, 59, 77, 0.22);
+  font-size: 1.7rem;
+  line-height: 1.1;
+}
+
+.lf-greeting {
+  font-size: 2.2rem;
+  font-style: italic;
+}
+
+.lf-sign {
+  justify-content: flex-end;
+  font-style: italic;
+  font-size: 1.9rem;
+}
+
+/* Glow the exact line you're currently writing on */
+.lf-row:focus-within {
+  border-bottom-color: #c2185b;
+}
+
+.lf-field {
+  flex: 1;
+  width: 100%;
+  background: transparent;
+  border: none;
+  padding: 0;
+  color: #b3294e;
+  font-family: "Caveat", cursive;
+  font-size: 2.6rem;
+  line-height: 1;
+}
+
+.lf-field:focus {
+  outline: none;
+}
+
+.lf-field::placeholder {
+  color: rgba(138, 59, 77, 0.4);
+  font-family: "Caveat", cursive;
+}
+
+/* Keep the native date picker icon visible on the cream paper */
+.lf-field[type="date"]::-webkit-calendar-picker-indicator {
+  filter: none;
+  opacity: 0.55;
+  cursor: pointer;
+}
+
+/* Multi-line activity field: wraps onto new ruled lines (no sideways scroll).
+   Its line-height equals the ruled pitch, and it draws a rule under every
+   line so the text always lands on a line as it grows. JS auto-grows height. */
+.lf-area {
+  display: block;
+  width: 100%;
+  border: none;
+  background-color: transparent;
+  resize: none;
+  overflow: hidden;
+  color: #b3294e;
+  font-family: "Caveat", cursive;
+  font-size: 2.6rem;
+  line-height: var(--line);
+  padding: 0;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent calc(var(--line) - 0.1rem),
+    rgba(138, 59, 77, 0.22) calc(var(--line) - 0.1rem),
+    rgba(138, 59, 77, 0.22) var(--line)
+  );
+}
+
+.lf-area:focus {
+  outline: none;
+}
+
+.lf-area::placeholder {
+  color: rgba(138, 59, 77, 0.4);
+}
+
+.lf-seal {
+  display: block;
+  margin: 2.4rem auto 0;
+}
+
+.btn-plan {
+  margin-top: 0.6rem;
+  animation: heartbeat 1.6s ease-in-out infinite;
+}
+
+@keyframes heartbeat {
+  0%, 100% { transform: scale(1); }
+  15% { transform: scale(1.06); }
+  30% { transform: scale(1); }
+  45% { transform: scale(1.06); }
+}
+
+.btn-plan:hover {
+  animation: none;
+}
+
+/* ---------------------------------------------------------------------------
+   Confirmation: the SAME notebook letter, filled in and sealed into an envelope
+   --------------------------------------------------------------------------- */
+.sealed-letter {
+  position: relative;
+  width: min(42rem, 92vw);
+  margin: 1rem auto 3rem;
+  animation: env-in 0.6s ease both;
+}
+
+@keyframes env-in {
+  from { opacity: 0; transform: translateY(4rem) scale(0.9); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Reuses .letter-form (cream ruled paper); adds the drop-in + glow */
+.letter-final {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  border: 0.55rem solid transparent;
+  border-radius: 0; /* airmail border is square */
+  /* Classic red/blue airmail striped border */
+  border-image: repeating-linear-gradient(
+      45deg,
+      #e2403a 0 0.8rem,
+      #fff 0.8rem 1.6rem,
+      #2b5fb0 1.6rem 2.4rem,
+      #fff 2.4rem 3.2rem
+    ) 8;
+  animation: letter-drop 1s cubic-bezier(0.2, 0.7, 0.25, 1) 0.3s both;
+  filter: drop-shadow(0 1.2rem 3rem rgba(255, 45, 111, 0.35));
+}
+
+@keyframes letter-drop {
+  0% { transform: translateY(-28%) rotate(-2deg); opacity: 0; }
+  100% { transform: translateY(0) rotate(0deg); opacity: 1; }
+}
+
+/* --- Airmail decorations (stamp, postmark, label) --- */
+.postage {
+  position: absolute;
+  top: 1rem;
+  right: 1.2rem;
+  z-index: 6;
+  width: 5.2rem;
+  height: 6.2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  background: #fff;
+  border: 0.25rem dotted #d6aebb; /* perforation hint */
+  border-radius: 0.3rem;
+  transform: rotate(6deg);
+  box-shadow: 0 0.4rem 0.9rem rgba(0, 0, 0, 0.3);
+}
+.postage-art {
+  font-size: 2.4rem;
+  line-height: 1;
+  color: #ff3b6b;
+}
+.postage-label {
+  font-family: "Nunito", sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.12rem;
+  color: #2b5fb0;
+}
+
+.postmark {
+  position: absolute;
+  top: 5.6rem;
+  right: 4.2rem;
+  z-index: 7;
+  width: 7rem;
+  height: 7rem;
+  border-radius: 50%;
+  border: 0.2rem solid rgba(43, 95, 176, 0.55);
+  box-shadow: 0 0 0 0.25rem rgba(43, 95, 176, 0.18);
+  color: rgba(43, 95, 176, 0.65);
+  font-family: "Nunito", sans-serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  line-height: 1.2;
+  letter-spacing: 0.05rem;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: rotate(-14deg);
+}
+
+.par-avion {
+  position: absolute;
+  bottom: 5.4rem;
+  left: 4.6rem;
+  z-index: 6;
+  padding: 0.2rem 0.7rem;
+  font-family: "Nunito", sans-serif;
+  font-style: italic;
+  font-weight: 700;
+  font-size: 1.3rem;
+  letter-spacing: 0.1rem;
+  color: #2b5fb0;
+  border: 0.15rem solid #2b5fb0;
+  border-radius: 0.3rem;
+  background: rgba(255, 255, 255, 0.6);
+  transform: rotate(-4deg);
+}
+
+/* Handwritten short value (the date) sitting on its line */
+.lf-written {
+  font-family: "Caveat", cursive;
+  font-size: 2.6rem;
+  color: #b3294e;
+}
+
+/* Long activity wraps over its own ruled lines, just like while writing */
+.lf-written-block {
+  font-family: "Caveat", cursive;
+  font-size: 2.6rem;
+  line-height: var(--line);
+  color: #b3294e;
+  overflow-wrap: anywhere;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent calc(var(--line) - 0.1rem),
+    rgba(138, 59, 77, 0.22) calc(var(--line) - 0.1rem),
+    rgba(138, 59, 77, 0.22) var(--line)
+  );
+}
+
+/* A small wax-seal heart stamped at the foot of the letter */
+.wax-seal {
+  position: absolute;
+  left: 50%;
+  bottom: -1.8rem;
+  transform: translateX(-50%) scale(0);
+  z-index: 4;
+  font-size: 2.8rem;
+  color: #ff3b6b;
+  text-shadow: 0 0 1.4rem rgba(255, 45, 111, 0.9);
+  animation: seal-pop 0.45s ease 1.2s both;
+}
+
+@keyframes seal-pop {
+  0% { transform: translateX(-50%) scale(0); }
+  60% { transform: translateX(-50%) scale(1.4); }
+  100% { transform: translateX(-50%) scale(1); }
+}
+
+/* (The seal and other stamps live inside the letter now, so they fold with
+   it automatically — no separate fade needed.) */
+
+/* ---------------------------------------------------------------------------
+   Confirmation extras (recap + screenshot note)
+   --------------------------------------------------------------------------- */
+.confirm-extras {
+  margin-top: 1rem;
+  animation: fade-up 0.6s ease 1.6s both;
+}
+
+.screenshot-note {
+  font-size: 1.5rem;
+  line-height: 1.6;
+  max-width: 42rem;
+  margin: 0 auto;
+  color: #ffd9e6;
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(1.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   "Yes" celebration burst
+   --------------------------------------------------------------------------- */
+.burst-heart {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  z-index: 30;
+  pointer-events: none;
+  transform: translate(-50%, -50%) scale(0.4);
+  filter: drop-shadow(0 0 0.8rem rgba(255, 45, 111, 0.8));
+  animation: burst 1s ease-out forwards;
+}
+
+@keyframes burst {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(0.4);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy)))
+      scale(1.5) rotate(40deg);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Cinematic send-off: canvas scene + SVG dove + airmail envelope
+   --------------------------------------------------------------------------- */
+.sent-btn {
+  margin-top: 1.6rem;
+}
+
+/* Give the sealed letter depth so the flap can fold in 3D */
+.sealed-letter {
+  perspective: 1200px;
+}
+
+/* On "send": the letter folds in half at the middle, then flies off.
+   transform-origin: center makes both halves meet in the middle (a real fold).
+   Decorations are inside the letter, so they fold + fade with it. */
+.sealed-letter.folding .letter-final {
+  transform-origin: center center;
+  animation: fold-half 1.1s ease forwards;
+}
+
+@keyframes fold-half {
+  0% { transform: scaleY(1); opacity: 1; }
+  45% { transform: scaleY(0.5); opacity: 1; } /* folded in half at the middle */
+  60% { transform: scaleY(0.5) translateY(0); opacity: 1; }
+  100% { transform: scaleY(0.5) translateY(-28%) scale(0.4) rotate(-3deg); opacity: 0; }
+}
+
+.sealed-letter.reopen .letter-final {
+  animation: env-in 0.6s ease both;
+}
+
+/* Full-screen journey overlay (everything painted on the canvas) */
+.journey {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.7s ease;
+}
+
+.journey.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.journey-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  z-index: 0;
+}
+
+/* --- The dove (SVG, flapping) carrying the airmail letter --- */
+.flyer {
+  position: absolute;
+  left: 50%;
+  top: 42%;
+  z-index: 7;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform: translate(-50%, -50%);
+}
+.journey.show .flyer {
+  animation: fly-in 1.4s cubic-bezier(0.2, 0.7, 0.3, 1) both,
+    flyer-drift 4s ease-in-out 1.4s infinite;
+}
+@keyframes fly-in {
+  0% { transform: translate(-50%, -50%) translateX(-120vw) translateY(-8vh); }
+  100% { transform: translate(-50%, -50%); }
+}
+@keyframes flyer-drift {
+  0%, 100% { transform: translate(-50%, -50%) translateY(0); }
+  50% { transform: translate(-50%, -50%) translateY(-2.4vh); }
+}
+.journey.arrived .flyer { animation: land 1s ease both; }
+@keyframes land {
+  0% { transform: translate(-50%, -50%) translateY(-3vh) scale(1.1); }
+  100% { transform: translate(-50%, -50%) scale(0.9); }
+}
+
+.dove {
+  width: 14rem;
+  height: auto;
+  filter: drop-shadow(0 0.6rem 1rem rgba(0, 0, 0, 0.4));
+}
+.dove-body,
+.dove-head,
+.dove-tail {
+  fill: #fdfdff;
+}
+.dove-wing {
+  fill: #e9ebf3;
+  transform-box: fill-box;
+  transform-origin: 20% 90%;
+  animation: flap 0.5s ease-in-out infinite;
+}
+.dove-beak { fill: #ffb13b; }
+.dove-eye { fill: #3a2230; }
+@keyframes flap {
+  0%, 100% { transform: rotate(-16deg); }
+  50% { transform: rotate(30deg); }
+}
+
+/* Airmail envelope (striped border + stamp) */
+.airmail {
+  position: relative;
+  width: 7rem;
+  height: 4.6rem;
+  margin-top: -0.6rem;
+  background: #fffdf8;
+  border: 0.55rem solid transparent;
+  border-image: repeating-linear-gradient(
+      45deg,
+      #e2403a 0 0.7rem,
+      #fff 0.7rem 1.4rem,
+      #2b5fb0 1.4rem 2.1rem,
+      #fff 2.1rem 2.8rem
+    ) 8;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.35);
+}
+.airmail::before {
+  content: "";
+  position: absolute;
+  left: 0.6rem;
+  right: 2rem;
+  top: 50%;
+  height: 0.15rem;
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(120, 120, 140, 0.55) 0 0.8rem,
+    transparent 0.8rem 1.2rem
+  );
+}
+.airmail-stamp {
+  position: absolute;
+  top: 0.1rem;
+  right: 0.2rem;
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+/* --- Cinematic framing: letterbox bars + vignette --- */
+.bars {
+  position: absolute;
+  left: 0; right: 0;
+  height: 0;
+  background: #000;
+  z-index: 8;
+  transition: height 0.7s ease;
+}
+.bars.top { top: 0; }
+.bars.bottom { bottom: 0; }
+.journey.show .bars { height: 7vh; }
+
+.vignette {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 52%, rgba(0, 0, 0, 0.55) 100%);
+}
+
+/* --- Lower-third caption + open button --- */
+.journey-status {
+  position: absolute;
+  left: 50%;
+  bottom: 17vh;
+  transform: translateX(-50%);
+  z-index: 7;
+  text-align: center;
+  width: 90%;
+  font-family: "Playfair Display", serif;
+  font-style: italic;
+  font-size: 2.4rem;
+  color: #fff5f8;
+  text-shadow: 0 0.2rem 1.4rem rgba(0, 0, 0, 0.7);
+}
+.journey-status.cap { animation: cap-in 0.5s ease; }
+@keyframes cap-in {
+  0% { opacity: 0; transform: translateX(-50%) translateY(0.6rem); }
+  100% { opacity: 1; transform: translateX(-50%); }
+}
+
+.open-btn {
+  position: absolute;
+  left: 50%;
+  bottom: 11vh;
+  transform: translateX(-50%) translateY(1rem);
+  z-index: 7;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+.open-btn.show {
+  opacity: 1;
+  transform: translateX(-50%);
+  pointer-events: auto;
+}
+
+/* ---------------------------------------------------------------------------
+   Responsive
+   --------------------------------------------------------------------------- */
 @media (max-width: 768px) {
   .title {
-    font-size: 4rem;
-  }
-
-  .main {
-    height: auto;
-    padding: 2rem;
-  }
-
-  .proposalForm {
-    width: 20rem;
+    font-size: 3.8rem;
   }
 
   .btn {
     font-size: 1.2rem;
     padding: 1rem 2rem;
-    margin: 0.2rem 0.1rem;
-    border-radius: 0.8rem;
+    border-radius: 1rem;
   }
 
   .btn:hover {
     transform: scale(1);
   }
 
-  .proposalHeading {
-    font-size: 3rem;
+  .envelope {
+    transform: scale(0.8);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ekg-track,
+  .heart,
+  .btn-plan {
+    animation: none;
   }
 }

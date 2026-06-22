@@ -1,11 +1,7 @@
-from django.urls import path, re_path
-from .views import *
+from django.urls import path
+from .views import index, yes_page
 
-main_site = [
+urlpatterns = [
     path("", index, name="index"),
     path("yes/", yes_page, name="yes_page"),
-    path("no/", no_page, name="no_page"),
-    re_path(r"^.*/$", error, name="error"),
 ]
-
-urlpatterns = main_site
