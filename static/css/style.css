@@ -15,13 +15,27 @@ body {
   line-height: 1;
   font-weight: 400;
   color: #ffd9e6;
-  /* Dark romantic noir with a warm rose halo behind the centre */
+  background: #07030a; /* base; the glow lives on the fixed ::before below */
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent; /* no grey flash on tap (iOS) */
+  touch-action: manipulation; /* kill the double-tap-to-zoom gesture */
+  overscroll-behavior: none; /* no iOS rubber-band / scroll-chaining bounce */
+  -webkit-text-size-adjust: 100%; /* stop iOS inflating text in landscape */
+}
+
+/* Dark romantic noir with a warm rose halo behind the centre. A fixed
+   pseudo-element replaces background-attachment: fixed, which janks badly /
+   renders wrong on iOS Safari. Same look, far smoother. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
   background:
     radial-gradient(circle at 50% 33%, rgba(255, 90, 130, 0.2), transparent 45%),
     radial-gradient(ellipse at 50% 42%, #3a0f24 0%, #1a0712 55%, #07030a 100%);
-  background-attachment: fixed;
-  min-height: 100vh;
-  overflow-x: hidden;
 }
 
 /* ---------------------------------------------------------------------------
@@ -42,6 +56,7 @@ body {
   height: 100%;
   /* Negative translate = waveform travels from right to left */
   animation: ekg-scroll 10s linear infinite;
+  will-change: transform; /* own compositor layer → smooth scroll, no repaint */
 }
 
 .ekg-svg {
@@ -86,6 +101,7 @@ body {
   opacity: 0;
   filter: drop-shadow(0 0 0.6rem rgba(255, 80, 120, 0.6));
   animation: float-up 9s linear infinite;
+  will-change: transform, opacity; /* smooth float, no per-frame repaint */
 }
 
 .heart:nth-child(1) { left: 10%; animation-delay: 0s; }
@@ -125,7 +141,9 @@ body {
   text-align: center;
   min-height: 100vh;
   min-height: 100dvh; /* dynamic vh: no jump when the mobile URL bar shows/hides */
-  padding: 2rem;
+  /* Respect notches / home indicator when viewport-fit=cover is active */
+  padding: max(2rem, env(safe-area-inset-top)) max(2rem, env(safe-area-inset-right))
+    max(2rem, env(safe-area-inset-bottom)) max(2rem, env(safe-area-inset-left));
 }
 
 /* The proposal is a single-screen experience: lock scrolling so the dodging
@@ -341,7 +359,10 @@ body {
    dodge clamp can keep it fully on-screen. The transition makes it glide away. */
 .btn-no {
   transform-origin: top left;
-  transition: left 0.16s ease, top 0.16s ease, transform 0.2s ease;
+  /* Moved via a translate()+scale() transform, so the glide is GPU-composited
+     and stays smooth (animating left/top would jank). */
+  transition: transform 0.18s ease;
+  will-change: transform;
   /* Once it flees it lives on <body>; lift it above .main (z-index 1) and the
      heart so it never hides behind the canvas. */
   position: relative;

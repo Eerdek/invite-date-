@@ -1,4 +1,19 @@
-# No database models are needed.
-# The proposal flow is fully front-end driven: the name is captured in the
-# browser, the "No" button can never be submitted, and the "Yes" page just
-# renders the chosen date/activity back to the user. Nothing is persisted.
+from django.db import models
+
+
+class Proposal(models.Model):
+    """A sealed plan: who said yes, and the date/activity they chose.
+
+    One row is written when the sweetheart submits the plan form on the yes page.
+    """
+
+    name = models.CharField(max_length=80, blank=True)
+    date = models.DateField(null=True, blank=True)
+    activity = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.name or 'Someone'} · {self.date or 'no date'}"

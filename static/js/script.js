@@ -12,7 +12,8 @@ let heartBloom = function () {};
 const heartCanvas = document.getElementById("heartCanvas");
 if (heartCanvas) {
   const ctx = heartCanvas.getContext("2d");
-  const TOTAL = 260; // number of radiating strings
+  // Fewer strings on small screens keeps the per-frame gradient work light.
+  const TOTAL = window.innerWidth < 700 ? 200 : 260; // radiating strings
   const DRAW_MS = 2800; // time for the heart to finish drawing
 
   // Classic heart curve, sampled once (scale-independent).
@@ -38,7 +39,9 @@ if (heartCanvas) {
   function resize() {
     // Respect height too, so the heart never dominates short / landscape screens.
     size = Math.min(window.innerWidth * 0.82, window.innerHeight * 0.5, 440);
-    const dpr = window.devicePixelRatio || 1;
+    // Cap DPR at 2: retina iOS reports 3, which triples the pixels to paint and
+    // tanks the frame rate for no visible gain.
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
     heartCanvas.width = size * dpr;
     heartCanvas.height = size * dpr;
     heartCanvas.style.width = size + "px";
@@ -329,20 +332,26 @@ if (proposalForm) {
   let yesScale = 1;
   let noScale = 1;
   let pleaIndex = 0;
+  let noX = 0;
+  let noY = 0;
 
-  // Place "No" at (x, y), but force it fully inside the visible viewport. Uses
+  // Place "No" at (x, y), but force it fully inside the visible viewport, using
   // the layout viewport (clientWidth/Height) and the EXACT scaled size
-  // (offsetWidth is unscaled, so × noScale). transform-origin is top-left, so
-  // the rendered box is [left, left + scaledW] — clamping with a margin means it
-  // can never poke past an edge, independent of transition timing or zoom.
+  // (offsetWidth is unscaled, so × noScale). We move it with a translate()+scale
+  // transform (GPU-composited, so the glide stays smooth) rather than left/top,
+  // and transform-origin: top-left keeps the rendered box at [noX, noX + scaledW]
+  // so the margin clamp holds — independent of transition timing or zoom.
   function placeNo(x, y) {
     const vw = document.documentElement.clientWidth;
     const vh = document.documentElement.clientHeight;
     const w = noBtn.offsetWidth * noScale;
     const h = noBtn.offsetHeight * noScale;
     const m = 12;
-    noBtn.style.left = `${Math.min(Math.max(m, x), Math.max(m, vw - w - m))}px`;
-    noBtn.style.top = `${Math.min(Math.max(m, y), Math.max(m, vh - h - m))}px`;
+    noX = Math.min(Math.max(m, x), Math.max(m, vw - w - m));
+    noY = Math.min(Math.max(m, y), Math.max(m, vh - h - m));
+    noBtn.style.left = "0";
+    noBtn.style.top = "0";
+    noBtn.style.transform = `translate(${noX}px, ${noY}px) scale(${noScale})`;
   }
 
   // Grow "Yes", shrink + teleport "No", and advance the plea (clamped).
@@ -364,7 +373,6 @@ if (proposalForm) {
     // intro animation) can capture it and throw the coordinates off.
     if (noBtn.parentElement !== document.body) document.body.appendChild(noBtn);
     noBtn.style.position = "fixed";
-    noBtn.style.transform = `scale(${noScale})`;
     placeNo(Math.random() * window.innerWidth, Math.random() * window.innerHeight);
 
     heartSkip(); // the heart skips a beat when "No" runs away
@@ -372,9 +380,7 @@ if (proposalForm) {
 
   // After a rotation / viewport change, pull a fled "No" back into view.
   window.addEventListener("resize", () => {
-    if (noBtn.style.position === "fixed") {
-      placeNo(parseFloat(noBtn.style.left) || 0, parseFloat(noBtn.style.top) || 0);
-    }
+    if (noBtn.style.position === "fixed") placeNo(noX, noY);
   });
 
   noBtn.addEventListener("mouseover", dodge);
@@ -555,7 +561,7 @@ function createJourneyScene(canvas) {
   }
 
   function resize() {
-    const dpr = window.devicePixelRatio || 1;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2); // cap for retina iOS
     W = window.innerWidth;
     H = window.innerHeight;
     canvas.width = W * dpr;
